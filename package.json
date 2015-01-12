@@ -1,0 +1,33 @@
+{
+  "name": "parse_pat_summaries",
+  "version": "1.0.0",
+  "description": "parse PAT summary reports",
+  "main": "parse_pat_summary_reports.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jmarca/calvad_parse_pat_summaries"
+  },
+  "keywords": [
+    "CalVAD"
+  ],
+  "author": "James E. Marca",
+  "license": "GPLv2",
+  "bugs": {
+    "url": "https://github.com/jmarca/calvad_parse_pat_summaries/issues"
+  },
+  "homepage": "https://github.com/jmarca/calvad_parse_pat_summaries",
+  "dependencies": {
+    "queue-async": "*",
+    "byline": "^4.1.1",
+    "config_okay": "0.0.3",
+    "glob": "^4.3.2",
+    "lodash": "^2.4.1",
+    "pg": "^4.1.1"
+  },
+  "devDependencies": {
+    "should": "^4.5.0"
+  }
+}
