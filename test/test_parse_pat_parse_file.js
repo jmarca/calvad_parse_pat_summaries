@@ -31,6 +31,34 @@ var speed_table = 'deleteme_test_summary_speed'
 var class_table = 'deleteme_test_summary_class'
 var speed_class_table = 'deleteme_test_summary_speed_class'
 
+
+var create_tables =['CREATE  TABLE '+class_table+'('
+                   + '     site_no integer not null ,'
+                   + '     ts      timestamp not null,'
+                   + '     wim_lane_no integer not null,'
+                   + '     veh_class integer not null,'
+                   + '     veh_count integer not null,'
+                   + '     primary key (site_no,ts,wim_lane_no,veh_class)'
+                   + ' )'
+                   ,'CREATE TABLE '+speed_table+' ('
+                   + '     site_no integer not null ,'
+                   + '     ts      timestamp not null,'
+                   + '     wim_lane_no integer not null,'
+                   + '     veh_speed numeric not null,'
+                   + '     veh_count integer not null,'
+                   + '     primary key (site_no,ts,wim_lane_no,veh_speed)'
+                   + ' )'
+                   ,'CREATE TABLE '+speed_class_table +' ('
+                   + '     site_no integer not null ,'
+                   + '     ts      timestamp not null,'
+                   + '     wim_lane_no integer not null,'
+                   + '     veh_class integer not null,'
+                   + '     veh_speed numeric not null,'
+                   + '     veh_count integer not null,'
+                   + '     primary key (site_no,ts,wim_lane_no,veh_class,veh_speed)'
+                   + ' )'
+                   ]
+
 before(function (done){
     config_okay(config_file,function(err,c){
         if(err) throw new Error(err)
@@ -53,33 +81,6 @@ before(function (done){
         connectionString = "pg://"+user+":"+pass+"@"+host+":"+port+"/"+db
         config = _.assign(config,c)
         //return done()
-
-    var create_tables =['CREATE  TABLE '+class_table+'('
-                       + '     site_no integer not null ,'
-                       + '     ts      timestamp not null,'
-                       + '     wim_lane_no integer not null,'
-                       + '     veh_class integer not null,'
-                       + '     veh_count integer not null,'
-                       + '     primary key (site_no,ts,wim_lane_no,veh_class)'
-                       + ' )'
-                       ,'CREATE TABLE '+speed_table+' ('
-                       + '     site_no integer not null ,'
-                       + '     ts      timestamp not null,'
-                       + '     wim_lane_no integer not null,'
-                       + '     veh_speed numeric not null,'
-                       + '     veh_count integer not null,'
-                       + '     primary key (site_no,ts,wim_lane_no,veh_speed)'
-                       + ' )'
-                       ,'CREATE TABLE '+speed_class_table +' ('
-                       + '     site_no integer not null ,'
-                       + '     ts      timestamp not null,'
-                       + '     wim_lane_no integer not null,'
-                       + '     veh_class integer not null,'
-                       + '     veh_speed numeric not null,'
-                       + '     veh_count integer not null,'
-                       + '     primary key (site_no,ts,wim_lane_no,veh_class,veh_speed)'
-                       + ' )'
-                       ]
         pg.connect(connectionString, function(err, _client, _done) {
             if(err){
                 console.log(err)
@@ -149,19 +150,6 @@ describe ('parse file can process a file', function(){
                                       ,'speed_class_table':speed_class_table
                                       })
 
-
-
-    it('hsould have a temportay table',function(done){
-        var query = localclient.query('select * from '+speed_class_table)
-        query.on('end',function(r){
-            console.log(r)
-            return done()
-        })
-        query.on('error',function(e){
-            throw new Error(e)
-        })
-    })
-
     it('should parse a file',function(done){
 
         var pf = ppr.setup_file_parser(config)
@@ -190,34 +178,37 @@ describe ('parse file can process a file', function(){
         return null
     })
 
-   it('should parse multiple troublesome files',function(done){
-       var fqueuer = ppr.file_queuer(test_config
-                                    ,function(err){
-                                         console.log('done with queued files')
-                                         done(err)
-                                     })
-       should.exist(fqueuer)
-       var groot = rootdir+'/test/report_0210_pr'
-       var pattern = "*"
-       glob("/**/"+pattern,{'cwd':groot,'root':groot},function(err,files){
-           files.forEach(function(f){
-               fs.stat(f,function(err,stats){
-                   if(stats.isFile()){
-                       fqueuer(f,function(err){
-                           should.not.exist(err)
-                           console.log('in test, done with file '+f)
-                           return null
-                       })
-                   }
-                   return null
-               })
-               return null
-           })
-           return null
-       })
-       return null
-   })
-   return null
+    // it('should parse multiple troublesome files',function(done){
+    //     var fqueuer = ppr.file_queuer(test_config)
+    //     should.exist(fqueuer)
+    //     var groot = rootdir+'/test/report_0210_pr'
+    //     var pattern = "*"
+    //     glob("/**/"+pattern,{'cwd':groot,'root':groot},function(err,files){
+    //         var filequeue = queue()
+    //         files.forEach(function(f){
+    //             filequeue.defer(fs.stat,f)
+    //         })
+    //         filequeue.awaitAll(function(err,stats){
+    //             for(var i =0,j=stats.length;
+    //                 i<j; i++;){
+    //                 if(stats[i].isFile()){
+    //                     fqueuer(files[i])
+    //                 }
+    //             }
+    //             fqueuer.awaitAll(function(e,results){
+    //                 should.not.exist(err)
+    //                 console.log('in test, done with files')
+    //                 // insert sql checks here
+    //                 return done()
+    //             })
+    //             return null
+    //         })
+    //         return null
+    //     })
+    //     return null
+    // })
+
+    return null
 })
 
 // these are tested implicitly above
