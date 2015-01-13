@@ -2,26 +2,21 @@
 
 /** process PAT files */
 
-var path = require('path')
-var rootdir = path.normalize(__dirname+'/..')
-var fs = require('fs')
 
 var ppr = require('./lib/parse_pat_reports')
 
-var async = require('async')
+var queue = require('queue-async')
 var _ = require('lodash')
 
 // db info
 var pg = require('pg');
 var env = process.env
-var puser = process.env.PSQL_USER
-var ppass = process.env.PSQL_PASS
-var phost = process.env.PSQL_HOST || '127.0.0.1'
-var pport = process.env.PSQL_PORT || 5432
-var pdbname = process.env.PSQL_DB || 'spatialvds'
-var connectionString = "pg://"+puser+":"+ppass+"@"+phost+":"+pport+"/"+pdbname;
-var schema = process.env.WIM_SCHEMA || 'wim'
 
+var config_okay = require('config_okay')
+var fs = require('fs')
+var path = require('path')
+var rootdir = path.normalize(__dirname+'/..')
+var config_file = rootdir+'/config.json'
 
 var argv = require('optimist')
     .usage('parse PAT summary report files, save to database.\nUsage: $0')
@@ -39,27 +34,41 @@ var pattern = argv.pattern;
 var glob = require('glob')
 console.log([root,pattern])
 
-var fqueuer = ppr.file_queuer({'schema':schema
-                               // ,'speed_table':speed_table
-                               // ,'class_table':class_table
-                               // ,'speed_class_table':speed_class_table
-                              }
-                             ,function(err){
-                                  console.log('done with queued files')
-                                 process.exit()
-                              })
+config_okay(config_file,function(err,c){
+    if(err) throw new Error(err)
+
+    if(!c.postgresql.parse_pat_summaries_db){ throw new Error('need valid postgresql.parse_pat_summaries_db defined in test.config.json')}
+    if(c.postgresql.table){ console.log('ignoring postgresql.table entry in config file; using temp tables instead') }
+    if(!c.postgresql.username){ throw new Error('need valid postgresql.username defined in test.config.json')}
+    if(!c.postgresql.password){ throw new Error('need valid postgresql.password defined in test.config.json')}
+
+    // sane defaults
+    if(c.postgresql.host === undefined) c.postgresql.host = 'localhost'
+    if(c.postgresql.port === undefined) c.postgresql.port = 5432
 
 
-glob("/**/"+pattern,{'cwd':root,'root':root},function(err,files){
-    _.forEach(files
-              ,function(f){
-                  fs.stat(f,function(err,stats){
-                      if(stats.isFile()){
-                          fqueuer(f, function (err) {
-                              if(err) console.log(err)
-                              console.log('finished processing file '+f);
-                          });
-                      }
-                  })
-              })
+    var fqueuer = ppr.file_queuer(c)
+
+
+    glob("/**/"+pattern,{'cwd':root,'root':root},function(err,files){
+        var filequeue = queue()
+        files.forEach(function(f){
+            filequeue.defer(fs.stat,f)
+            return null
+        })
+        filequeue.awaitAll(function(err,stats){
+            for(var i =0,j=stats.length;i<j; i++){
+                if(stats[i].isFile()){
+                    fqueuer(files[i])
+                }
+            }
+            fqueuer.awaitAll(function(e,results){
+                console.log('done with queued files')
+                process.exit()
+            })
+            return null
+        })
+    })
+
+    return null
 })
