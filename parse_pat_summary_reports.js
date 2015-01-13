@@ -32,15 +32,14 @@ var root = argv.root;
 var pattern = argv.pattern;
 
 var glob = require('glob')
-console.log([root,pattern])
+console.log(['going to check',root,pattern])
 
 config_okay(config_file,function(err,c){
     if(err) throw new Error(err)
 
-    if(!c.postgresql.parse_pat_summaries_db){ throw new Error('need valid postgresql.parse_pat_summaries_db defined in test.config.json')}
-    if(c.postgresql.table){ console.log('ignoring postgresql.table entry in config file; using temp tables instead') }
-    if(!c.postgresql.username){ throw new Error('need valid postgresql.username defined in test.config.json')}
-    if(!c.postgresql.password){ throw new Error('need valid postgresql.password defined in test.config.json')}
+    if(!c.postgresql.parse_pat_summaries_db){ throw new Error('need valid postgresql.parse_pat_summaries_db defined in config.json')}
+    if(!c.postgresql.username){ throw new Error('need valid postgresql.username defined in config.json')}
+    if(!c.postgresql.password){ throw new Error('need valid postgresql.password defined in config.json')}
 
     // sane defaults
     if(c.postgresql.host === undefined) c.postgresql.host = 'localhost'
@@ -52,6 +51,7 @@ config_okay(config_file,function(err,c){
 
     glob("/**/"+pattern,{'cwd':root,'root':root},function(err,files){
         var filequeue = queue()
+        console.log('found up to '+files.length+' files matching pattern.  Checking for real files, and processing')
         files.forEach(function(f){
             filequeue.defer(fs.stat,f)
             return null
@@ -62,6 +62,7 @@ config_okay(config_file,function(err,c){
                     fqueuer(files[i])
                 }
             }
+            console.log('processing queue loaded up')
             fqueuer.awaitAll(function(e,results){
                 console.log('done with queued files')
                 process.exit()
