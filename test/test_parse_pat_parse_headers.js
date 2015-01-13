@@ -9,20 +9,11 @@ var _ = require('lodash');
 
 var ppr = require('../lib/parse_pat_reports')
 
-// test db
-var pg = require('pg'); //native libpq bindings = `var pg = require('pg').native`
-var env = process.env
-var puser = process.env.PSQL_USER
-var ppass = process.env.PSQL_PASS
-var phost = process.env.PSQL_HOST || '127.0.0.1'
-var pport = process.env.PSQL_PORT || 5432
-var pdbname = process.env.PSQL_DB || 'test'
-var connectionString = "pg://"+puser+":"+ppass+"@"+phost+":"+pport+"/"+pdbname;
 
 
 describe ('process header lines',function(){
     it('should exist', function(done){
-        var phl = ppr.process_header_lines
+        var phl = ppr.process_header_lines()
         should.exist(phl)
         phl.should.have.property('reset')
         phl.should.have.property('get_lane')
@@ -39,7 +30,7 @@ describe ('process header lines',function(){
                     ,'DATE    :   01/12/10               County   :  SCL          State-ID : 06             Direction :   7'
                     ,'========================================================================================================================']
 
-        var phl = ppr.process_header_lines
+        var phl = ppr.process_header_lines()
         var notready = phl.ready()
         notready.should.not.be.ok
 
