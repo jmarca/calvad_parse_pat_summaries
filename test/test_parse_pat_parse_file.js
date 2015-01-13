@@ -178,35 +178,34 @@ describe ('parse file can process a file', function(){
         return null
     })
 
-    // it('should parse multiple troublesome files',function(done){
-    //     var fqueuer = ppr.file_queuer(test_config)
-    //     should.exist(fqueuer)
-    //     var groot = rootdir+'/test/report_0210_pr'
-    //     var pattern = "*"
-    //     glob("/**/"+pattern,{'cwd':groot,'root':groot},function(err,files){
-    //         var filequeue = queue()
-    //         files.forEach(function(f){
-    //             filequeue.defer(fs.stat,f)
-    //         })
-    //         filequeue.awaitAll(function(err,stats){
-    //             for(var i =0,j=stats.length;
-    //                 i<j; i++;){
-    //                 if(stats[i].isFile()){
-    //                     fqueuer(files[i])
-    //                 }
-    //             }
-    //             fqueuer.awaitAll(function(e,results){
-    //                 should.not.exist(err)
-    //                 console.log('in test, done with files')
-    //                 // insert sql checks here
-    //                 return done()
-    //             })
-    //             return null
-    //         })
-    //         return null
-    //     })
-    //     return null
-    // })
+    it('should parse multiple troublesome files',function(done){
+        var fqueuer = ppr.file_queuer(test_config)
+        should.exist(fqueuer)
+        var groot = rootdir+'/test/report_0210_pr'
+        var pattern = "*"
+        glob("/**/"+pattern,{'cwd':groot,'root':groot},function(err,files){
+            var filequeue = queue()
+            files.forEach(function(f){
+                filequeue.defer(fs.stat,f)
+            })
+            filequeue.awaitAll(function(err,stats){
+                for(var i =0,j=stats.length;i<j; i++){
+                    if(stats[i].isFile()){
+                        fqueuer(files[i])
+                    }
+                }
+                fqueuer.awaitAll(function(e,results){
+                    should.not.exist(err)
+                    console.log('in test, done with files')
+                    // insert sql checks here
+                    return done()
+                })
+                return null
+            })
+            return null
+        })
+        return null
+    })
 
     return null
 })
