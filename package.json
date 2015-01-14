@@ -20,12 +20,13 @@
   },
   "homepage": "https://github.com/jmarca/calvad_parse_pat_summaries",
   "dependencies": {
-    "queue-async": "*",
     "byline": "^4.1.1",
     "config_okay": "0.0.3",
     "glob": "^4.3.2",
     "lodash": "^2.4.1",
-    "pg": "^4.1.1"
+    "optimist": "^0.6.1",
+    "pg": "^4.1.1",
+    "queue-async": "*"
   },
   "devDependencies": {
     "should": "^4.5.0"
