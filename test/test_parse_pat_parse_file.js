@@ -72,15 +72,22 @@ before(function (done){
         if(c.postgresql.host === undefined) c.postgresql.host = 'localhost'
         if(c.postgresql.port === undefined) c.postgresql.port = 5432
 
-        var host = c.postgresql.host ? c.postgresql.host : '127.0.0.1';
+
+        var host = c.postgresql.host     ? c.postgresql.host : '127.0.0.1';
         var user = c.postgresql.username ? c.postgresql.username : 'myname';
         var pass = c.postgresql.password ? c.postgresql.password : 'secret';
-        var port = c.postgresql.port ? c.postgresql.port :  5432;
+        var port = c.postgresql.port     ? c.postgresql.port :  5432;
         // global
         var db  = c.postgresql.parse_pat_summaries_db ? c.postgresql.parse_pat_summaries_db : 'spatialvds'
         connectionString = "pg://"+user+":"+pass+"@"+host+":"+port+"/"+db
-        config = _.assign(config,c)
-        //return done()
+
+        config['postgresql'] = 
+            _.assign(c.postgresql
+                     ,{'speed_table':speed_table
+                       ,'class_table':class_table
+                       ,'speed_class_table':speed_class_table
+                      })
+
         pg.connect(connectionString, function(err, _client, _done) {
             if(err){
                 console.log(err)
@@ -92,11 +99,8 @@ before(function (done){
             var q = queue(3)
             create_tables.forEach(function(stmt){
                 q.defer(function(cb){
-                    console.log('create '+stmt)
                     var query = localclient.query(stmt)
                     query.on('end', function(r){
-                        console.log('done with '+stmt)
-                        console.log(r)
                         return cb()
                     })
                     query.on('error',function(e){
@@ -108,7 +112,6 @@ before(function (done){
                 return null
             })
             q.await(function(err){
-                console.log('finished making temp tables')
                 return done()
             })
             return null
@@ -123,7 +126,6 @@ after( function(done){
                              ,speed_class_table].join(',')
     var query = localclient.query(stmt)
     query.on('end', function(r){
-        console.log('done with '+stmt)
         return done()
     })
     query.on('error',function(e){
@@ -145,11 +147,6 @@ describe ('parse file code is okay',function(){
 })
 
 describe ('parse file can process a file', function(){
-    var test_config = _.assign(config,{'speed_table':speed_table
-                                      ,'class_table':class_table
-                                      ,'speed_class_table':speed_class_table
-                                      })
-
     it('should parse a file',function(done){
 
         var pf = ppr.setup_file_parser(config)
@@ -166,7 +163,7 @@ describe ('parse file can process a file', function(){
 
     it('should parse a big file',function(done){
 
-        var pf = ppr.setup_file_parser(test_config)
+        var pf = ppr.setup_file_parser(config)
         should.exist(pf)
         var filename = rootdir+'/test/pat_report_sample_2.txt'
         console.log('parsing '+filename)
@@ -179,7 +176,7 @@ describe ('parse file can process a file', function(){
     })
 
     it('should parse multiple troublesome files',function(done){
-        var fqueuer = ppr.file_queuer(test_config)
+        var fqueuer = ppr.file_queuer(config)
         should.exist(fqueuer)
         var groot = rootdir+'/test/report_0210_pr'
         var pattern = "*"

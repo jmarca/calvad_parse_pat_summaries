@@ -15,7 +15,7 @@ var env = process.env
 var config_okay = require('config_okay')
 var fs = require('fs')
 var path = require('path')
-var rootdir = path.normalize(__dirname+'/..')
+var rootdir = path.normalize(__dirname)
 var config_file = rootdir+'/config.json'
 
 var argv = require('optimist')
@@ -41,9 +41,14 @@ config_okay(config_file,function(err,c){
     if(!c.postgresql.username){ throw new Error('need valid postgresql.username defined in config.json')}
     if(!c.postgresql.password){ throw new Error('need valid postgresql.password defined in config.json')}
 
+    if(!c.postgresql.speed_table){ throw new Error('need valid postgresql.speed_table (with any schemas needed) defined in config.json')}
+    if(!c.postgresql.speed_class_table){ throw new Error('need valid postgresql.speed_class_table (with any schemas needed) defined in config.json')}
+    if(!c.postgresql.class_table){ throw new Error('need valid postgresql.class_table (with any schemas needed) defined in config.json')}
+
     // sane defaults
     if(c.postgresql.host === undefined) c.postgresql.host = 'localhost'
     if(c.postgresql.port === undefined) c.postgresql.port = 5432
+
 
 
     var fqueuer = ppr.file_queuer(c)
@@ -57,7 +62,9 @@ config_okay(config_file,function(err,c){
             return null
         })
         filequeue.awaitAll(function(err,stats){
-            for(var i =0,j=stats.length;i<j; i++){
+            for(var i =0,j=stats.length;
+                i<j; 
+                i++){
                 if(stats[i].isFile()){
                     fqueuer(files[i])
                 }
