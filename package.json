@@ -22,7 +22,7 @@
   "dependencies": {
     "byline": "^4.1.1",
     "config_okay": "0.0.3",
-    "glob": "^4.3.2",
+    "glob": "^5.0.15",
     "lodash": "^4.17.20",
     "optimist": "^0.6.1",
     "pg": "^4.1.1",
